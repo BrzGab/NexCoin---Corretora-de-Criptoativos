@@ -1,0 +1,108 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #0f0f0f; /* Cor de fundo escura combinando com o layout geral */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #ffffff; /* Texto branco para contraste */
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    background-color: #1c1c1c; /* Cor de fundo do container combinando com o tema escuro */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.login-box {
+    width: 100%;
+    text-align: center;
+}
+
+.logo {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+h2 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #e0e0e0; /* Texto em cinza claro para contraste */
+}
+
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #bbbbbb; /* Texto em cinza médio */
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #333333; /* Borda escura para combinar com o tema */
+    background-color: #2a2a2a; /* Fundo do input escuro */
+    color: #ffffff;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 35px;
+    cursor: pointer;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.forgot-password a {
+    text-decoration: none;
+    color: #5a67d8; /* Cor azul para combinar com os destaques da imagem */
+    font-size: 14px;
+}
+
+.login-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #0056d8; /* Cor de fundo azul destacada */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background-color: #0044a7; /* Azul um pouco mais escuro no hover */
+}
+
+.signup-link {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #bbbbbb; /* Texto em cinza médio */
+}
+
+.signup-link a {
+    text-decoration: none;
+    color: #5a67d8; /* Cor azul para os links de ação */
+}

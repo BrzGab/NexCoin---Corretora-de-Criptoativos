@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexCoin</title>
+
+    <!-- favicon -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+
+    <!-- custom css link -->
+    <link rel="stylesheet" href="{% static 'css/carteir.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <!-- google font link -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- #HEADER -->
+    <header class="header" data-header>
+        <div class="container">
+            <a href="{% url 'pagina_inicial_logado' %}" class="logo">
+                <img src="{% static 'images/logo.svg' %}" width="32" height="32" alt="NexCoin logo">
+                NexCoin
+            </a>
+            <nav class="navbar" data-navbar>
+                <ul class="navbar-list">
+                    <li class="navbar-item">
+                        <a href="{% url 'compra' %}" class="navbar-link active" data-nav-link>Comprar</a>
+                    </li>
+                    <li class="navbar-item mobile-only">
+                        <a href="{% url 'conta' %}" class="navbar-link">Minha Conta</a>
+                    </li>
+                    <li class="navbar-item mobile-only">
+                        <a href="{% url 'sair' %}" class="navbar-link">Sair</a>
+                    </li>
+                </ul>
+            </nav>
+            <button class="nav-toggle-btn" aria-label="Toggle menu" data-nav-toggler>
+                <span class="line line-1"></span>
+                <span class="line line-2"></span>
+                <span class="line line-3"></span>
+            </button>
+            <div class="header-actions">
+                <a href="{% url 'conta' %}" class="btn-sair desktop-only">Minha Conta</a>
+                <a href="{% url 'sair' %}" class="btn-sair desktop-only">Sair</a>
+            </div>
+        </div>
+    </header>
+  
+    <div class="container">
+        <main>
+            <!-- Saldo na Wallet -->
+            <section class="wallet-balance">
+                <h1>Saldo na Wallet</h1>
+                <h2>R$ {{ saldo_usuario|floatformat:2 }}</h2>
+            </section>
+
+            <!-- Saldos Disponíveis para Negociação -->
+            <section class="crypto-balance">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Moeda</th>
+                            <th>Quantidade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="crypto-list">
+                        {% for crypto in saldos_criptomoedas %}
+                        <tr>
+                            <td>
+                                <img src="{% static 'images/' %}{{ crypto.simbolo|lower }}.svg" alt="{{ crypto.nome }}" width="40" height="40">
+                                {{ crypto.nome|title }}
+                            </td>
+                            <td>{{ crypto.simbolo|upper }} {{ crypto.quantidade|floatformat:8 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2">Nenhuma criptomoeda disponível.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- custom js link -->
+    <script src="{% static 'js/script.js' %}" defer></script>
+
+    <!-- ionicon link -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>

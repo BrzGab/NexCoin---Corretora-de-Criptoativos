@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexCoin - Depósito Pix</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'css/depo.css' %}">
+</head>
+<body>
+
+<!-- #HEADER -->
+<header class="header" data-header>
+    <div class="container">
+        <a href="{% url 'pagina_inicial_logado' %}" class="logo">
+            <img src="{% static 'images/logo.svg' %}" width="32" height="32" alt="NexCoin logo">
+            NexCoin
+        </a>
+        
+        <nav class="navbar" data-navbar>
+            <ul class="navbar-list">
+                <li class="navbar-item">
+                    <a href="{% url 'compra' %}" class="navbar-link active" data-nav-link>Comprar</a>
+                </li>
+                <li class="navbar-item mobile-only">
+                    <a href="{% url 'sair' %}" class="navbar-link">Sair</a>
+                </li>
+            </ul>
+        </nav>
+        
+        <button class="nav-toggle-btn" aria-label="Toggle menu" data-nav-toggler>
+            <span class="line line-1"></span>
+            <span class="line line-2"></span>
+            <span class="line line-3"></span>
+        </button>
+        
+        <a href="{% url 'sair' %}" class="btn-sair desktop-only">Sair</a>
+    </div>
+</header>
+
+
+
+    <main class="main-content">
+        <div class="container">
+            <div class="pix-deposit">
+                <img src="{% static 'images/pix.svg' %}" alt="Logo Pix" class="pix-logo">
+                <h2>Depósito via Pix</h2>
+                <div class="deposit-amount">
+                    <input type="number" id="amount" placeholder="Valor do depósito (R$)">
+                </div>
+                <button class="generate-qr" onclick="gerarQRCode()">Gerar QR Code</button>
+                <div id="qrcode"></div>
+                <button id="confirmPayment" class="confirm-payment" style="display: none;">Já paguei</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script>
+    let valorAtual = 0;
+
+    function gerarQRCode() {
+        const valor = document.getElementById('amount').value;
+        if (valor && !isNaN(valor) && valor > 0) {
+            valorAtual = parseFloat(valor);
+            const chavePix = "12345678900";
+            const nomeLoja = "NexCoin";
+            const cidade = "SAO PAULO";
+            
+            let payload = `00020126330014BR.GOV.BCB.PIX0111${chavePix}52040000530398654${valor.padStart(13, '0')}5802BR5913${nomeLoja}6008${cidade}62070503***6304`;
+
+            const tipoNumero = 0;
+            const nivelCorrecaoErro = 'L';
+            const qr = qrcode(tipoNumero, nivelCorrecaoErro);
+            qr.addData(payload);
+            qr.make();
+
+            document.getElementById('qrcode').innerHTML = qr.createImgTag(4);
+            document.getElementById('confirmPayment').style.display = 'block';
+        } else {
+            alert('Por favor, insira um valor válido para o depósito.');
+        }
+    }
+
+    document.getElementById('confirmPayment').addEventListener('click', function() {
+        confirmarPagamento();
+    });
+
+    function confirmarPagamento() {
+    fetch('/atualizar_saldo/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': obterCookie('csrftoken')
+        },
+        body: JSON.stringify({valor: valorAtual})
+    })
+    .then(resposta => {
+        if (!resposta.ok) {
+            return resposta.json().then(dados => Promise.reject(dados));
+        }
+        return resposta.json();
+    })
+    .then(dados => {
+        if (dados.sucesso) {
+            alert(`Pagamento confirmado! Seu novo saldo é R$ ${dados.novo_saldo_carteira.toFixed(2)}`);
+            atualizarExibicaoSaldo(dados.novo_saldo_carteira);
+            
+            document.getElementById('amount').value = '';
+            document.getElementById('qrcode').innerHTML = '';
+            document.getElementById('confirmPayment').style.display = 'none';
+        } else {
+            throw new Error(dados.erro || 'Erro desconhecido ao processar o pagamento.');
+        }
+    })
+    .catch(erro => {
+        console.error('Erro:', erro);
+        alert('Ocorreu um erro ao processar o pagamento: ' + (erro.mensagem || erro.message || 'Erro desconhecido'));
+    });
+}
+
+    function atualizarExibicaoSaldo(novoSaldo) {
+        const elementosSaldo = document.querySelectorAll('.user-balance');
+        elementosSaldo.forEach(elemento => {
+            elemento.textContent = `R$ ${novoSaldo.toFixed(2)}`;
+        });
+    }
+
+    function obterCookie(nome) {
+        let valorCookie = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, nome.length + 1) === (nome + '=')) {
+                    valorCookie = decodeURIComponent(cookie.substring(nome.length + 1));
+                    break;
+                }
+            }
+        }
+        return valorCookie;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const botaoGerar = document.querySelector('.generate-qr');
+        if (botaoGerar) {
+            botaoGerar.addEventListener('click', gerarQRCode);
+        }
+    });
+    </script>
+</body>
+</html>

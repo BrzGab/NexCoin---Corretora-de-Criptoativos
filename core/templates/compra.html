@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexCoin - Compra de Criptomoedas</title>
+
+    <link rel="shortcut icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'css/compra.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <canvas id="animatedBackground"></canvas>
+    <header class="header" data-header>
+        <div class="container">
+            <a href="{% url 'pagina_inicial_logado' %}" class="logo">
+                <img src="{% static 'images/logo.svg' %}" width="32" height="32" alt="NexCoin logo">
+                NexCoin
+            </a>
+            <nav class="navbar" data-navbar>
+                <ul class="navbar-list">
+                    <li class="navbar-item mobile-only">
+                        <a href="{% url 'carteira' %}" class="navbar-link">Carteira</a>
+                    </li>
+                    <li class="navbar-item mobile-only">
+                        <a href="{% url 'conta' %}" class="navbar-link">Minha Conta</a>
+                    </li>
+                </ul>
+            </nav>
+            <button class="nav-toggle-btn" aria-label="Toggle menu" data-nav-toggler>
+                <span class="line line-1"></span>
+                <span class="line line-2"></span>
+                <span class="line line-3"></span>
+            </button>
+            <div class="desktop-buttons">
+                <a href="{% url 'carteira' %}" class="btn btn-outline">Carteira</a>
+                <a href="{% url 'conta' %}" class="btn btn-outline">Minha Conta</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <article>
+            <div class="container">
+                <div class="exchange-box">
+                    <h1>COMPRE SUAS CRIPTOMOEDAS</h1>
+                    <div class="wallet-balance">
+                        Saldo disponível: <span id="wallet-balance">R$ {{ saldo_usuario|floatformat:2 }}</span>
+                   
+                    
+                    <form method="POST" action="{% url 'processar_compra' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="amount-brl">Você envia em R$</label>
+                            <input type="number" id="amount-brl" name="valor_brl" placeholder="Valor em BRL" step="0.01" required>
+                       
+                        <div class="form-group">
+                            <label for="crypto-select">Escolha a criptomoeda</label>
+                            <select id="crypto-select" name="cripto" required>
+                                <option value="bitcoin">Bitcoin (BTC)</option>
+                                <option value="ethereum">Ethereum (ETH)</option>
+                                <option value="litecoin">Litecoin (LTC)</option>
+                                <option value="tether">Tether USD (USDT)</option>
+                                <option value="binancecoin">Binance Coin (BNB)</option>
+                                <option value="solana">Solana (SOL)</option>
+                                <option value="ripple">XRP (XRP)</option>
+                                <option value="zcash">Zcash (ZEC)</option>
+                                <option value="dogecoin">Dogecoin (DOGE)</option>
+                                <option value="cardano">Cardano (ADA)</option>
+                                <option value="tron">Tron (TRX)</option>
+                                <option value="shiba-inu">Shiba Inu (SHIB)</option>
+                                <option value="bitcoin-cash">Bitcoin Cash (BCH)</option>
+                                <option value="polkadot">Polkadot (DOT)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Você obtém</label>
+                            <input type="number" id="crypto-output" name="quantidade_cripto" placeholder="Quantidade de Criptomoedas" readonly>
+                        </div>
+                        <div class="error-message" id="error-message"></div>
+                        <button type="submit" id="exchange-btn">Comprar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+            
+            <div class="scroll-indicator">
+                <p>Role para ver a cotação</p>
+                <div class="arrow-down"></div>
+            </div>
+            
+            <section id="quotes-section" class="section market" aria-label="market update" data-section>
+                <div class="container">
+                    <h2 class="h2 section-title">Cotação e Gráfico em Tempo Real</h2>
+                    <div class="crypto-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nome</th>
+                                    <th>Última Atualização</th>
+                                    <th>24h %</th>
+                                    <th>Capitalização de mercado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crypto-table-body">
+                                <!-- Dados serão inseridos aqui pelo JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="crypto-chart">
+                        <canvas id="cryptoChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const amountBRL = document.getElementById('amount-brl');
+            const cryptoOutput = document.getElementById('crypto-output');
+            const cryptoSelect = document.getElementById('crypto-select');
+            const exchangeBtn = document.getElementById('exchange-btn');
+            const errorMessage = document.getElementById('error-message');
+            const walletBalanceElement = document.getElementById('wallet-balance');
+            const cryptoTableBody = document.getElementById('crypto-table-body');
+            const cryptoChartElement = document.getElementById('cryptoChart');
+
+            let walletBalance = parseFloat('{{ perfil_usuario.saldo_carteira|floatformat:2 }}'.replace(',', '.'));
+
+            function updateBalance() {
+                fetch('{% url "obter_saldo" %}')
+                    .then(response => response.json())
+                    .then(data => {
+                        walletBalance = data.balance;
+                        walletBalanceElement.textContent = `R$ ${walletBalance.toFixed(2)}`;
+                    })
+                    .catch(error => {
+                        console.error("Erro ao atualizar saldo:", error);
+                    });
+            }
+
+            setInterval(updateBalance, 30000);
+
+            function fetchCryptoRate(crypto) {
+                return fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${crypto}&vs_currencies=brl`)
+                    .then(response => response.json())
+                    .then(data => data[crypto].brl);
+            }
+
+            function updateCryptoOutput() {
+                const crypto = cryptoSelect.value;
+                const brlValue = parseFloat(amountBRL.value);
+
+                if (!isNaN(brlValue) && crypto) {
+                    fetchCryptoRate(crypto).then(rate => {
+                        const cryptoValue = brlValue / rate;
+                        cryptoOutput.value = cryptoValue.toFixed(8);
+                    }).catch(error => {
+                        console.error("Erro ao buscar cotação:", error);
+                    });
+                }
+            }
+
+            function fetchCryptoData() {
+                return fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=brl')
+                    .then(response => response.json())
+                    .catch(error => {
+                        console.error('Erro ao buscar dados de criptomoedas:', error);
+                        return [];
+                    });
+            }
+
+            async function updateCryptoTable() {
+                const data = await fetchCryptoData();
+                cryptoTableBody.innerHTML = '';
+                data.forEach((coin, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>
+                            <img src="${coin.image}" alt="${coin.name}" width="20" height="20">
+                            ${coin.name}
+                        </td>
+                        <td>R$ ${coin.current_price.toFixed(2)}</td>
+                        <td style="color: ${coin.price_change_percentage_24h >= 0 ? 'green' : 'red'};">
+                            ${coin.price_change_percentage_24h.toFixed(2)}%
+                        </td>
+                        <td>R$ ${coin.market_cap.toLocaleString('pt-BR')}</td>
+                    `;
+                    cryptoTableBody.appendChild(row);
+                });
+            }
+
+            async function initCryptoChart() {
+                const data = await fetchCryptoData();
+                const ctx = cryptoChartElement.getContext('2d');
+                const labels = data.map(coin => coin.name);
+                const prices = data.map(coin => coin.current_price);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Preço Atual (BRL)',
+                            data: prices,
+                            backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                            borderColor: 'rgba(0, 123, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                errorMessage.style.color = 'red';
+            }
+
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+
+            function showSuccess(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                errorMessage.style.color = 'green';
+            }
+
+            function updateBalanceDisplay(balance) {
+                walletBalanceElement.textContent = `R$ ${balance.toFixed(2)}`;
+            }
+
+            function resetForm() {
+                amountBRL.value = '';
+                cryptoOutput.value = '';
+            }
+
+            function updateCryptoBalances(cryptos) {
+                const cryptoTableBody = document.querySelector('.crypto-table tbody');
+                if (cryptoTableBody) {
+                    cryptoTableBody.innerHTML = '';
+                    cryptos.forEach(crypto => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                <img src="/static/images/${crypto.simbolo.toLowerCase()}.svg" alt="${crypto.nome}" width="20" height="20">
+                                ${crypto.nome}
+                            </td>
+                            <td>${crypto.simbolo.toUpperCase()} ${crypto.quantidade.toFixed(8)}</td>
+                        `;
+                        cryptoTableBody.appendChild(row);
+                    });
+                }
+            }
+
+            updateCryptoTable();
+            initCryptoChart();
+
+            amountBRL.addEventListener('input', updateCryptoOutput);
+            cryptoSelect.addEventListener('change', updateCryptoOutput);
+
+            exchangeBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                const brlValue = parseFloat(amountBRL.value);
+                const cripto = cryptoSelect.value;
+                const quantidadeCripto = cryptoOutput.value;
+
+                if (isNaN(brlValue) || brlValue <= 0) {
+                    showError("Por favor, insira um valor válido em BRL.");
+                    return;
+                }
+
+                if (parseFloat(brlValue) > parseFloat(walletBalance)) {
+                    showError("Saldo insuficiente.");
+                    return;
+                }
+
+                hideError();
+
+                fetch("{% url 'processar_compra' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: `valor_brl=${brlValue}&cripto=${cripto}&quantidade_cripto=${quantidadeCripto}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showError(data.error);
+                    } else {
+                        walletBalance = data.saldo_atual;
+                        updateBalanceDisplay(walletBalance);
+                        updateCryptoBalances(data.saldos_criptomoedas);
+                        resetForm();
+                        showSuccess("Compra realizada com sucesso!");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao processar a compra:", error);
+                    showError("Ocorreu um erro ao processar a compra. Por favor, tente novamente.");
+                });
+            });
+
+            updateBalance();
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('animatedBackground');
+            const ctx = canvas.getContext('2d');
+        
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        
+            const particles = [];
+            const particleCount = 100;
+        
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1,
+                    dx: (Math.random() - 0.5) * 0.5,
+                    dy: (Math.random() - 0.5) * 0.5,
+                });
+            }
+        
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        
+                particles.forEach(particle => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    ctx.fill();
+        
+                    particle.x += particle.dx;
+                    particle.y += particle.dy;
+        
+                    if (particle.x < 0 || particle.x > canvas.width) particle.dx *= -1;
+                    if (particle.y < 0 || particle.y > canvas.height) particle.dy *= -1;
+                });
+        
+                requestAnimationFrame(animateParticles);
+            }
+        
+            animateParticles();
+        });
+    </script>
+    <script src="{% static 'js/script22.js' %}"></script>
+</body>
+</html>
