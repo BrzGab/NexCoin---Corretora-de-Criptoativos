@@ -4,7 +4,7 @@
 
 ![Logo do Projeto](imagens/logo.png)
 
-![Imagenss](imagens/Imagem1.png)
+![Imagens](imagens/Imagem1.png)
 
 ![Imagens](imagens/Imagem2.png)
 
