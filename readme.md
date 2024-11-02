@@ -56,8 +56,8 @@ O projeto foi desenvolvido utilizando a arquitetura MVT (Model-View-Template) do
 ### Passos para Instalação
 1. Clone o repositório:
     ```bash
-    git clone https://github.com/sua-conta/nexcoin.git
-    cd nexcoin
+    git clone https://github.com/BrzGab/NexCoin-Corretora-de-Criptoativos.git
+    cd NexCoin-Corretora-de-Criptoativos
     ```
 
 2. Crie e ative um ambiente virtual:
