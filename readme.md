@@ -1,14 +1,23 @@
 # Nexcoin
 
+# Nexcoin
 
 ![Logo do Projeto](imagens/logo.png)
-![Imagens](imagens/imagem1.png)
+
+![Imagenss](imagens/imagem1.png)
+
 ![Imagens](imagens/imagem2.png)
+
 ![Imagens](imagens/imagem3.png)
+
 ![Imagens](imagens/imagem4.png)
+
 ![Imagens](imagens/imagem5.png)
+
 ![Imagens](imagens/imagem6.png)
+
 ![Imagens](imagens/imagem7.png)
+
 
 
 
