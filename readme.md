@@ -1,7 +1,5 @@
 # Nexcoin
 
-# Nexcoin
-
 ![Logo do Projeto](imagens/logo.png)
 
 ![Imagens](imagens/Imagem1.png)
